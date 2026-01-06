@@ -1,223 +1,166 @@
-<!DOCTYPE html>  
-<html lang="zh-CN">  
-<head>  
-    <meta charset="UTF-8">  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">  
-    <title>一定要打开看哦</title>  
-    <style>  
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }  
-        body { margin: 0; padding: 0; width: 100%; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(to bottom, #ff9a9e, #fecfef); font-family: 'PingFang SC', sans-serif; overflow: hidden; }  
-          
-        /* --- 核心：平移裂开爱心 --- */  
-        .heart-wrapper {  
-            position: relative;  
-            width: 100px;  
-            height: 90px;  
-            margin-bottom: 50px;  
-            /* 整体呼吸效果 */  
-            animation: pulse 0.8s infinite alternate;  
-        }  
-  
-        /* 左右半心的共同容器 */  
-        .heart-side {  
-            position: absolute;  
-            top: 0;  
-            width: 50px; /* 宽度一半 */  
-            height: 90px;  
-            overflow: hidden; /* 关键：只显示一半 */  
-            transition: transform 0.3s ease;  
-        }  
-  
-        .left-side {  
-            left: 0;  
-        }  
-  
-        .right-side {  
-            left: 50px;  
-        }  
-  
-        /* 放在容器里的完整爱心 */  
-        .full-heart {  
-            position: absolute;  
-            width: 100px;  
-            height: 90px;  
-        }  
-  
-        .full-heart::before,  
-        .full-heart::after {  
-            content: "";  
-            position: absolute;  
-            top: 0;  
-            width: 50px;  
-            height: 80px;  
-            background: #ff4d6d;  
-            border-radius: 50px 50px 0 0;  
-        }  
-  
-        .full-heart::before {  
-            left: 50px;  
-            transform: rotate(-45deg);  
-            transform-origin: 0 100%;  
-        }  
-  
-        .full-heart::after {  
-            left: 0;  
-            transform: rotate(45deg);  
-            transform-origin: 100% 100%;  
-        }  
-  
-        /* 调整右侧容器里的爱心位置，使其露出的还是同一颗心的右半部分 */  
-        .right-side .full-heart {  
-            left: -50px;  
-        }  
-  
-        /* 裂开时中间的那条锯齿线（可选，增加破碎感） */  
-        .crack-line {  
-            position: absolute;  
-            left: 50%;  
-            top: 10%;  
-            width: 2px;  
-            height: 80%;  
-            background: rgba(255,255,255,0.5);  
-            transform: translateX(-50%);  
-            opacity: 0;  
-            z-index: 5;  
-            transition: opacity 0.3s;  
-        }  
-  
-        @keyframes pulse {  
-            to { transform: scale(1.1); }  
-        }  
-  
-        /* --- 基础 UI --- */  
-        .container { text-align: center; padding: 0 20px; min-height: 100px; z-index: 10; }  
-        #main-text { font-size: 1.2rem; color: #fff; line-height: 1.6; text-shadow: 1px 1px 4px rgba(0,0,0,0.1); font-weight: bold; }  
-        .btn-group { position: relative; width: 100%; height: 150px; margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 30px; z-index: 10; }  
-        .btn { padding: 12px 35px; font-size: 1.1rem; border: none; border-radius: 30px; cursor: pointer; font-weight: bold; transition: all 0.2s; }  
-        #yes-btn { background-color: #ff4d6d; color: white; box-shadow: 0 5px 15px rgba(255, 77, 109, 0.3); }  
-        #no-btn { background-color: #fff; color: #ff4d6d; position: relative; }  
-        .wechat-btn { margin-top: 20px; background-color: #07c160; color: white; border: none; padding: 12px 25px; border-radius: 20px; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 8px; }  
-        .floating-heart { position: absolute; color: rgba(255, 255, 255, 0.5); pointer-events: none; animation: fly linear forwards; }  
-        @keyframes fly { to { transform: translateY(-100vh) rotate(360deg); opacity: 0; } }  
-    </style>  
-</head>  
-<body>  
-  
-    <div class="heart-wrapper" id="heart-parent">  
-        <div class="crack-line" id="crack"></div>  
-        <!-- 左半心 -->  
-        <div class="heart-side left-side" id="l-side">  
-            <div class="full-heart"></div>  
-        </div>  
-        <!-- 右半心 -->  
-        <div class="heart-side right-side" id="r-side">  
-            <div class="full-heart"></div>  
-        </div>  
-    </div>  
-  
-    <div class="container">  
-        <div id="main-text">我喜欢你很久了，你愿意做我女朋友吗？</div>  
-    </div>  
-  
-    <div class="btn-group">  
-        <button id="yes-btn" class="btn">好呀</button>  
-        <button id="no-btn" class="btn">不要</button>  
-    </div>  
-  
-    <script>  
-        const phrases = ["不要嘛🥺", "工资卡上交！💰", "我会一直陪着你✨", "做饭我全包！🍳", "你是点错了吧？❤️", "心要碎了...", "真的裂开了😭", "💔 真的碎了", "求求你了嘛❤️"];  
-        let phraseIndex = 0;  
-        let crackLevel = 0;  
-  
-        const mainText = document.getElementById('main-text');  
-        const noBtn = document.getElementById('no-btn');  
-        const yesBtn = document.getElementById('yes-btn');  
-        const lSide = document.getElementById('l-side');  
-        const rSide = document.getElementById('r-side');  
-        const crackLine = document.getElementById('crack');  
-        const heartBox = document.getElementById('heart-parent');  
-  
-        function handleNo() {  
-            // 1. 切换文字  
-            mainText.innerText = phrases[phraseIndex];  
-            phraseIndex = (phraseIndex + 1) % phrases.length;  
-  
-            // 2. 按钮闪避  
-            const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);  
-            const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);  
-            noBtn.style.position = 'fixed';  
-            noBtn.style.left = x + 'px';  
-            noBtn.style.top = y + 'px';  
-  
-            // 3. 水平裂开逻辑  
-            crackLevel++;  
-            const moveDist = crackLevel * 12; // 每次平移 12px  
-            lSide.style.transform = `translateX(-${moveDist}px)`;  
-            rSide.style.transform = `translateX(${moveDist}px)`;  
-              
-            // 显示裂缝线并让颜色变淡  
-            crackLine.style.opacity = crackLevel * 0.2;  
-            const br = 100 - (crackLevel * 15);  
-            lSide.style.filter = `brightness(${br}%) grayscale(${crackLevel * 20}%)`;  
-            rSide.style.filter = `brightness(${br}%) grayscale(${crackLevel * 20}%)`;  
-        
-            const currentScale = parseFloat(yesBtn.style.transform.replace('scale(', '')) || 1;  
-            yesBtn.style.transform = `scale(${currentScale + 0.12})`;  
-            // 裂开后停止呼吸动画，显得死寂  
-            if(crackLevel > 1) heartBox.style.animation = 'none';  
-        }  
-  
-        noBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleNo(); });  
-        noBtn.addEventListener('click', handleNo);  
-  
-        yesBtn.addEventListener('click', () => {  
-            const replyText = "我也喜欢你，我们在一起吧！❤️";  
-            copyToClipboard(replyText);  
-  
-            document.body.innerHTML = `  
-                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center; padding: 20px;">  
-                    <div class="heart-wrapper" style="animation: pulse 0.4s infinite alternate;">  
-                        <div class="heart-side left-side" style="transform: translateX(0); filter: brightness(100%);">  
-                            <div class="full-heart"></div>  
-                        </div>  
-                        <div class="heart-side right-side" style="transform: translateX(0); filter: brightness(100%);">  
-                            <div class="full-heart"></div>  
-                        </div>  
-                    </div>  
-                    <h1 style="color:#fff;">太棒啦！❤️❤️❤️</h1>  
-                    <p style="color:#fff;">回复语已复制：<br>"${replyText}"</p>  
-                    <button class="wechat-btn" onclick="openWechat()">去微信告诉他</button>  
-                </div>  
-            `;  
-            setInterval(createFloatingHeart, 100);  
-        });  
-  
-        function copyToClipboard(text) {  
-            const textarea = document.createElement("textarea");  
-            textarea.value = text;  
-            document.body.appendChild(textarea);  
-            textarea.select();  
-            document.execCommand("copy");  
-            document.body.removeChild(textarea);  
-        }  
-  
-        function openWechat() {  
-            window.location.href = "weixin://";  
-            setTimeout(() => { alert("回复语已复制，请去微信粘贴发送哦！"); }, 500);  
-        }  
-  
-        function createFloatingHeart() {  
-            const h = document.createElement('div');  
-            h.classList.add('floating-heart');  
-            h.innerHTML = '❤️';  
-            h.style.left = Math.random() * 100 + 'vw';  
-            h.style.top = '100vh';  
-            h.style.fontSize = (Math.random() * 20 + 15) + 'px';  
-            h.style.animationDuration = (Math.random() * 3 + 2) + 's';  
-            document.body.appendChild(h);  
-            setTimeout(() => h.remove(), 5000);  
-        }  
-        window.onload = () => { setInterval(createFloatingHeart, 600); };  
-    </script>  
-</body>  
-</html>  
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="title" content="小娜同学" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="https://cdn.jsdelivr.net/gh/sun0225SUN/photos/img/20210715233345.png"
+    />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <style type="text/css">
+      @font-face {
+        font-family: digit;
+        src: url("digital.ttf") format("truetype");
+      }
+    </style>
+    <link href="css/default.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/garden.js"></script>
+    <script type="text/javascript" src="js/functions.js"></script>
+  </head>
+
+  <body>
+    <div id="mainDiv">
+      <div id="content">
+        <div id="code">
+          <span class="comments">##</span><br />
+          <span class="comments"># I am a programmer,</span><br />
+          <span class="comments"
+            ># so I write code to celebrate Valentine's Day in coder's
+            way.</span
+          ><br />
+          <span class="comments">##</span><br />
+          i = Boy(<span class="string">"畅"</span>);<br />
+          u = Girl(<span class="string">"娜"</span>);<br />
+          <span class="comments"
+            ># 29 10, 2020, I meet you because of Badminton Club activities. </span
+          ><br />
+          i.meet(u)<br />
+          <span class="comments"
+            ># Afterwards, You linger in my mind, impossible to shake off. </span
+          ><br />
+          i.obsessed(u)<br />
+          <span class="comments"
+            ># 8 5, 2022, We had our last meeting at Wuhan Polytechnic
+            College.</span
+          ><br />
+          separation(u, i)<br />
+          <span class="comments"># Later, We argued many times.</span><br />
+          conflict(u, i)<br />
+          <span class="comments"
+            ># Fortunately, We chose each other, and never walked away.</span
+          ><br />
+          lucky(u, i)<br />
+          <span class="comments"
+            ># Sometimes there are a few conflicts between us.</span
+          ><br />
+          conflict(u, i, sometimes=<span class="keyword">True</span>)<br />
+          <span class="comments"
+            ># But we are getting more and more in harmony together.</span
+          ><br />
+          u.in_harmony_with(i) <br />
+          i.in_harmony_with(u) <br />
+          <span class="comments"># You are the greatest love of my life.</span
+          ><br />
+          while <span class="keyword">True</span>:<br />
+          <span class="placeholder"></span
+          ><span class="keyword">if</span> u.with(i):<br />
+          <span class="placeholder"></span><span class="placeholder"></span>u =
+          everything<br />
+          <span class="placeholder"></span
+          ><span class="keyword">else</span>:<br />
+          <span class="placeholder"></span
+          ><span class="placeholder"></span>everything = u<br />
+          <span class="comments"
+            ># Nana, my lady, may I be the one by your side, today and
+            always?</span
+          >
+          <span class="comments"
+            ># Whenever you are ready to answer, my heart will be right
+            here.</span
+          >
+          <button id="startLoveBtn" class="comments">
+            Let our love begin here
+          </button>
+        </div>
+        <div id="loveHeart">
+          <canvas id="garden"></canvas>
+          <div id="words">
+            <div id="messages">
+              From this moment, our love story unfolds
+              <div id="elapseClock"></div>
+            </div>
+            <div id="loveu">
+              Love u forever and ever.<br />
+              <div class="signature"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+      var offsetX = $("#loveHeart").width() / 2;
+      var offsetY = $("#loveHeart").height() / 2 - 55;
+      // var together = new Date();
+      // // 此处月份介于 0 ~ 11 之间。用本地时间表示，如 8 月要用 7 表示。
+      // together.setFullYear(2026, 0, 6);
+      // together.setHours(0);
+      // together.setMinutes(0);
+      // together.setSeconds(0);
+      // together.setMilliseconds(0);
+      window.addEventListener("click", () => {
+        console.log("window点击触发掉落花瓣");
+        // startPetalFall(function () {
+        //   console.log("花瓣全部掉落完毕，开始打字机效果");
+        //   $("#code").typewriter(); // 打字机
+        //   setTimeout(startHeartAnimation, 1000); // 花瓣重新生长
+        // });
+        fall()
+      });
+
+      $("#startLoveBtn").one("click", function () {
+        // 1️⃣ 显示计时区域（关键）
+        shwoMessage();
+
+        // 2️⃣ 记录在一起的第一秒
+        together = new Date();
+
+        // 3️⃣ 立刻显示 0 秒
+        timeElapse(together);
+
+        // 4️⃣ 实时计时
+        loveTimer = setInterval(function () {
+          timeElapse(together);
+        }, 500);
+
+        // 5️⃣ 按钮状态变化
+        $(this).text("Our time has begun ❤️");
+        $(this).prop("disabled", true);
+        $(this).css({
+          cursor: "default",
+          opacity: 0.8,
+        });
+      });
+      if (!document.createElement("canvas").getContext) {
+        var msg = document.createElement("div");
+        msg.id = "errorMsg";
+        msg.innerHTML =
+          "Your browser doesn't support HTML5!<br/>Recommend use Chrome 14+/IE 9+/Firefox 7+/Safari 4+";
+        document.body.appendChild(msg);
+        $("#code").css("display", "none");
+        $("#copyright").css("position", "absolute");
+        $("#copyright").css("bottom", "10px");
+        document.execCommand("stop");
+      } else {
+        startHeartAnimation();
+        adjustCodePosition();
+        // $("#code").typewriter();
+      }
+    </script>
+  </body>
+</html>
