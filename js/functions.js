@@ -176,7 +176,11 @@ function startTypewriter() {
 // 开始计时
 function startTimer() {
 	console.log("保留外层花朵并开始计时");
-
+	if (loveTimer) {
+		console.log("已经计时直接返回");
+		
+		return 
+	}
 	// 保留最外层的花朵，移除其他花朵
 	if (garden.blooms.length > outerLayerBloomCount) {
 		garden.blooms = garden.blooms.slice(0, outerLayerBloomCount);
@@ -196,9 +200,7 @@ function startTimer() {
 	together = new Date();
 	timeElapse(together);
 
-	if (typeof loveTimer !== 'undefined') {
-		clearInterval(loveTimer);
-	}
+
 	loveTimer = setInterval(function () {
 		timeElapse(together);
 	}, 500);
