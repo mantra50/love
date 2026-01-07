@@ -70,12 +70,17 @@ function Bloom(e, d, f, a, b) {
 	this.pc = a;
 	this.petals = [];
 	this.garden = b;
+	this.isfinished = false;
 	this.init();
 	this.garden.addBloom(this)
 }
 
 Bloom.prototype = {
 	draw: function () {
+		// 如果已经完成，不绘制任何东西（等待被点击掉落）
+		if (this.isfinished) {
+			return;
+		}
 		var c, b = true;
 		this.garden.ctx.save();
 		this.garden.ctx.translate(this.p.x, this.p.y);
@@ -86,7 +91,8 @@ Bloom.prototype = {
 		}
 		this.garden.ctx.restore();
 		if (b == true) {
-			this.garden.removeBloom(this)
+			// 花瓣绘制完成后，标记为完成状态但不移除
+			this.isfinished = true;
 		}
 	}, init: function () {
 		var c = 360 / this.pc;
